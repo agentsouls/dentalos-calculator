@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How much is your practice losing?</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #0D9488;
+      --teal-dark: #0b7a71;
+      --teal-light: #f0fdfa;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --bg: #ffffff;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .wrapper {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 48px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 40px);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .subhead {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 520px;
+    }
+
+    /* Form */
+    .form-section {
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    .form-section h2 {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    label .hint {
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    input[type="number"],
+    input[type="email"] {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      color: var(--text);
+      transition: border-color 0.15s;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      opacity: 1;
+    }
+
+    input[type="number"]:focus,
+    input[type="email"]:focus {
+      outline: none;
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+    }
+
+    .calc-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--teal);
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      margin-top: 8px;
+    }
+
+    .calc-btn:hover { background: var(--teal-dark); }
+    .calc-btn:active { transform: scale(0.99); }
+
+    /* Results */
+    .results {
+      display: none;
+      margin-bottom: 40px;
+    }
+
+    .results.visible { display: block; }
+
+    .total-card {
+      background: var(--teal);
+      color: white;
+      border-radius: 12px;
+      padding: 36px 32px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .total-label {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.85;
+      margin-bottom: 10px;
+    }
+
+    .total-amount {
+      font-size: clamp(44px, 10vw, 64px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .total-sublabel {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    /* Buckets */
+    .buckets {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+
+    .bucket {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
+    }
+
+    .bucket:last-child { border-bottom: none; }
+
+    .bucket-info {}
+
+    .bucket-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .bucket-desc {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .bucket-amount {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--teal);
+      white-space: nowrap;
+    }
+
+    /* Benchmark callout */
+    .benchmark {
+      background: var(--teal-light);
+      border-left: 3px solid var(--teal);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #374151;
+      margin-bottom: 32px;
+    }
+
+    .benchmark strong { color: var(--teal-dark); }
+
+    /* CTA section */
+    .cta-section {
+      border-top: 1px solid var(--border);
+      padding-top: 40px;
+    }
+
+    .cta-copy {
+      font-size: 17px;
+      line-height: 1.7;
+      color: #374151;
+      margin-bottom: 32px;
+    }
+
+    .waitlist-form {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .waitlist-form input[type="email"] {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .waitlist-btn {
+      padding: 11px 24px;
+      background: var(--teal);
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .waitlist-btn:hover { background: var(--teal-dark); }
+
+    .confirmation {
+      display: none;
+      background: var(--teal-light);
+      border: 1px solid var(--teal);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-size: 15px;
+      color: var(--teal-dark);
+      font-weight: 500;
+      margin-top: 16px;
+    }
+
+    .confirmation.visible { display: block; }
+
+    /* Utility */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    @media (max-width: 480px) {
+      .wrapper { padding: 40px 16px 60px; }
+      .form-section { padding: 24px 20px; }
+      .total-card { padding: 28px 20px; }
+      .bucket { padding: 16px 18px; }
+      .waitlist-form { flex-direction: column; }
+      .waitlist-btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <div class="header">
+      <div class="eyebrow">DentalOS Revenue Analysis</div>
+      <h1>How much is your practice losing?</h1>
+      <p class="subhead">Enter four numbers. See the annual cost of running your front desk on manual processes.</p>
+    </div>
+
+    <div class="form-section">
+      <h2>Practice Inputs</h2>
+
+      <div class="field">
+        <label for="active-patients">Active patients in your practice</label>
+        <input type="number" id="active-patients" min="0" placeholder="e.g. 1200" />
+      </div>
+
+      <div class="field">
+        <label for="noshows">Average no-shows per week</label>
+        <input type="number" id="noshows" min="0" placeholder="e.g. 8" />
+      </div>
+
+      <div class="field">
+        <label for="recalls">Unanswered recall reminders per month</label>
+        <input type="number" id="recalls" min="0" placeholder="e.g. 60" />
+      </div>
+
+      <div class="field">
+        <label for="preauths">Manual insurance pre-auths chased per month</label>
+        <input type="number" id="preauths" min="0" placeholder="e.g. 40" />
+      </div>
+
+      <div class="field">
+        <label for="hygiene-value">
+          Average production per hygiene visit
+          <span class="hint">(optional, defaults to $250)</span>
+        </label>
+        <input type="number" id="hygiene-value" min="0" placeholder="250" />
+      </div>
+
+      <button class="calc-btn" onclick="calculate()">Calculate My Revenue Leakage</button>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="results">
+
+      <div class="total-card">
+        <div class="total-label">Estimated Annual Revenue Leakage</div>
+        <div class="total-amount" id="total-display">$0</div>
+        <div class="total-sublabel">leaving your practice every year</div>
+      </div>
+
+      <div class="buckets">
+        <div class="bucket">
+          <div class="bucket-info">
+            <div class="bucket-name">Missed Recall Revenue</div>
+            <div class="bucket-desc" id="recall-desc">Patients who never rebooked</div>
+          </div>
+          <div class="bucket-amount" id="recall-amount">$0</div>
+        </div>
+        <div class="bucket">
+          <div class="bucket-info">
+            <div class="bucket-name">No-Show Cost</div>
+            <div class="bucket-desc" id="noshow-desc">Unfilled chair time</div>
+          </div>
+          <div class="bucket-amount" id="noshow-amount">$0</div>
+        </div>
+        <div class="bucket">
+          <div class="bucket-info">
+            <div class="bucket-name">Insurance Follow-Up Labor</div>
+            <div class="bucket-desc" id="preauth-desc">Admin hours chasing claims</div>
+          </div>
+          <div class="bucket-amount" id="preauth-amount">$0</div>
+        </div>
+      </div>
+
+      <div class="benchmark">
+        <strong>Industry benchmark:</strong> The average mid-size dental practice loses approximately $80,000 per year to recall abandonment alone. Most practices never see it as a line item because it never shows up as a charge, only as a gap in the schedule.
+      </div>
+
+      <hr class="divider" />
+
+      <div class="cta-section">
+        <p class="cta-copy">
+          This is what an AI agent recovers for you. Not a chatbot. Not a reminder service. A persistent front-desk agent that handles recall outreach, confirms appointments, and follows insurance claims to resolution, every day, without burning out your admin staff.<br><br>
+          DentalOS is in early access. Drop your email and we'll show you exactly how it works for your practice.
+        </p>
+
+        <div class="waitlist-form" id="waitlist-form">
+          <input type="email" id="waitlist-email" placeholder="your@email.com" />
+          <button class="waitlist-btn" onclick="submitWaitlist()">Join the Waitlist</button>
+        </div>
+
+        <div class="confirmation" id="confirmation">
+          You're on the list. We'll be in touch.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    function fmt(n) {
+      return '$' + Math.round(n).toLocaleString('en-US');
+    }
+
+    function calculate() {
+      const noshows   = parseFloat(document.getElementById('noshows').value)   || 0;
+      const recalls   = parseFloat(document.getElementById('recalls').value)   || 0;
+      const preauths  = parseFloat(document.getElementById('preauths').value)  || 0;
+      const hygiene   = parseFloat(document.getElementById('hygiene-value').value) || 250;
+
+      // Recall leakage: unanswered/month x 12 x avg hygiene value
+      const recallLoss = recalls * 12 * hygiene;
+
+      // No-show cost: no-shows/week x 52 x $200/occurrence
+      const noshowLoss = noshows * 52 * 200;
+
+      // Insurance follow-up labor: pre-auths/month x 45min x $22/hr x 12
+      const preauthLoss = preauths * (45 / 60) * 22 * 12;
+
+      const total = recallLoss + noshowLoss + preauthLoss;
+
+      // Update display
+      document.getElementById('total-display').textContent = fmt(total);
+
+      document.getElementById('recall-amount').textContent  = fmt(recallLoss);
+      document.getElementById('noshow-amount').textContent  = fmt(noshowLoss);
+      document.getElementById('preauth-amount').textContent = fmt(preauthLoss);
+
+      document.getElementById('recall-desc').textContent =
+        `${recalls.toLocaleString()} unanswered reminders/mo × 12 × ${fmt(hygiene)}/visit`;
+      document.getElementById('noshow-desc').textContent =
+        `${noshows.toLocaleString()} no-shows/wk × 52 weeks × $200/occurrence`;
+      document.getElementById('preauth-desc').textContent =
+        `${preauths.toLocaleString()} pre-auths/mo × 45 min × $22/hr × 12 months`;
+
+      // Show results
+      const resultsEl = document.getElementById('results');
+      resultsEl.classList.add('visible');
+      setTimeout(() => {
+        resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+
+    function submitWaitlist() {
+      const email = document.getElementById('waitlist-email').value.trim();
+      if (!email || !email.includes('@')) {
+        document.getElementById('waitlist-email').focus();
+        return;
+      }
+      console.log('Waitlist submission:', email);
+      document.getElementById('waitlist-form').style.display = 'none';
+      document.getElementById('confirmation').classList.add('visible');
+    }
+
+    // Allow Enter key on email field
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('waitlist-email').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') submitWaitlist();
+      });
+    });
+  </script>
+</body>
+</html>
